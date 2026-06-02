@@ -155,6 +155,7 @@ public static class UpdateService
                 File.Copy(sourcePath, targetPath, overwrite: true);
             }
 
+            DeleteObsoleteInstalledFiles(targetDirectory);
             Process.Start(new ProcessStartInfo { FileName = exePath, WorkingDirectory = targetDirectory, UseShellExecute = true });
             await AppendLogAsync(logPath, "Updater finished successfully.");
             return 0;
@@ -180,6 +181,17 @@ public static class UpdateService
         {
             return false;
         }
+    }
+
+    private static void DeleteObsoleteInstalledFiles(string targetDirectory)
+    {
+        var oldGalleryPath = Path.Combine(targetDirectory, "Assets", "Gallery");
+        if (Directory.Exists(oldGalleryPath))
+            Directory.Delete(oldGalleryPath, recursive: true);
+
+        var oldSymbolsPath = Path.Combine(targetDirectory, "Voxie.pdb");
+        if (File.Exists(oldSymbolsPath))
+            File.Delete(oldSymbolsPath);
     }
 
     private static void PruneOldUpdateStaging()

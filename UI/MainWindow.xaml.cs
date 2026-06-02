@@ -17,6 +17,7 @@ namespace Voxie;
 public partial class MainWindow : Window
 {
     private readonly DispatcherTimer _galleryLayoutTimer = new() { Interval = TimeSpan.FromMilliseconds(140) };
+    private readonly DispatcherTimer _audioDeviceRefreshTimer = new() { Interval = TimeSpan.FromSeconds(2) };
     private readonly AppSettings _settings;
     private readonly MicrophoneCaptureService _microphoneCapture = new();
     private readonly MicrophoneLevelMonitorService _microphoneLevelMonitor = new();
@@ -48,9 +49,11 @@ public partial class MainWindow : Window
             _galleryLayoutTimer.Stop();
             RebuildGallery();
         };
+        _audioDeviceRefreshTimer.Tick += (_, _) => RefreshAudioDevices();
         Closed += (_, _) =>
         {
             _hotkey.Dispose();
+            _audioDeviceRefreshTimer.Stop();
             _microphoneCapture.Dispose();
             _microphoneLevelMonitor.Dispose();
             _vrChatOsc.Dispose();
@@ -59,6 +62,8 @@ public partial class MainWindow : Window
         Loaded += async (_, _) =>
         {
             RegisterPhraseHotkey();
+            RefreshAudioDevices();
+            _audioDeviceRefreshTimer.Start();
             await CheckForUpdatesAsync(showWhenCurrent: false);
         };
         GalleryScrollViewer.SizeChanged += (_, _) => ScheduleGalleryRebuild();
@@ -484,6 +489,29 @@ public partial class MainWindow : Window
     private void AudioSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
         StartMicrophoneLevelPreview();
 
+    private void RefreshAudioDevices_Click(object sender, RoutedEventArgs e)
+    {
+        RefreshAudioDevices();
+        SetStatus($"Found {_audioDevices.Count} microphone input device(s).");
+    }
+
+    private void RefreshAudioDevices(string? preferredDeviceName = null)
+    {
+        var devices = MicrophoneCaptureService.GetDevices();
+        if (_audioDevices.SequenceEqual(devices))
+            return;
+
+        var selectedName = (AudioSourceComboBox.SelectedItem as AudioInputDevice)?.Name
+            ?? preferredDeviceName
+            ?? _settings.AudioSource;
+        _audioDevices = devices;
+        AudioSourceComboBox.ItemsSource = _audioDevices;
+        AudioSourceComboBox.SelectedItem = _audioDevices.FirstOrDefault(device =>
+            string.Equals(device.Name, selectedName, StringComparison.OrdinalIgnoreCase))
+            ?? _audioDevices.FirstOrDefault();
+        StartMicrophoneLevelPreview();
+    }
+
     private void StartMicrophoneLevelPreview()
     {
         _microphoneLevelMonitor.Stop();
@@ -624,11 +652,7 @@ public partial class MainWindow : Window
 
     private void LoadSettings()
     {
-        _audioDevices = MicrophoneCaptureService.GetDevices();
-        AudioSourceComboBox.ItemsSource = _audioDevices;
-        AudioSourceComboBox.SelectedItem = _audioDevices.FirstOrDefault(device =>
-            string.Equals(device.Name, _settings.AudioSource, StringComparison.OrdinalIgnoreCase))
-            ?? _audioDevices.FirstOrDefault();
+        RefreshAudioDevices(_settings.AudioSource);
         SelectByText(LanguageComboBox, _settings.Language);
         SelectByText(ModelComboBox, _settings.Model);
         ActivationKeyText.Text = _settings.ActivationKey;

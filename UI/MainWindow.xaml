@@ -494,8 +494,16 @@
                         <TextBlock Text="TRANSCRIPTION SETTINGS" Foreground="{StaticResource Pink}" FontWeight="Bold" FontSize="11" />
                         <TextBlock Text="Local Whisper preferences" Foreground="#FFFFFF" FontSize="18" FontWeight="SemiBold" Margin="0,5,0,16" />
                         <TextBlock Text="Audio source" Foreground="{StaticResource Muted}" />
-                        <ComboBox x:Name="AudioSourceComboBox" Margin="0,5,0,7" DisplayMemberPath="Name"
-                                  SelectionChanged="AudioSourceComboBox_SelectionChanged" />
+                        <Grid Margin="0,5,0,7">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ComboBox x:Name="AudioSourceComboBox" DisplayMemberPath="Name"
+                                      SelectionChanged="AudioSourceComboBox_SelectionChanged" />
+                            <Button Grid.Column="1" Content="Refresh devices" Click="RefreshAudioDevices_Click"
+                                    Margin="8,0,0,0" />
+                        </Grid>
                         <TextBlock Text="Microphone level" Foreground="{StaticResource Muted}" FontSize="11" />
                         <ProgressBar x:Name="MicrophoneLevelMeter" Minimum="0" Maximum="100" Margin="0,5,0,4" />
                         <TextBlock x:Name="MicrophoneLevelHint" Text="Open Settings to preview the selected microphone."
