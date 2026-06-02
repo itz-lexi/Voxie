@@ -364,6 +364,17 @@
                     <Button Style="{StaticResource NavButton}" Content="Settings" Click="ShowSettings_Click" />
                 </StackPanel>
                 <StackPanel Grid.Row="3">
+                    <Border x:Name="SidebarUpdatePrompt" Visibility="Collapsed" Background="#2B2031"
+                            BorderBrush="{StaticResource Blue}" BorderThickness="1" CornerRadius="10"
+                            Padding="10" Margin="0,0,0,10">
+                        <StackPanel>
+                            <TextBlock Text="VOXIE UPDATE READY" Foreground="{StaticResource Blue}" FontSize="10" FontWeight="Bold" />
+                            <TextBlock x:Name="SidebarUpdateText" Text="A newer version is ready to install."
+                                       Foreground="#F3F3F3" TextWrapping="Wrap" FontSize="12" Margin="0,4,0,8" />
+                            <Button x:Name="SidebarInstallUpdateButton" Style="{StaticResource PrimaryButton}"
+                                    Margin="0" Padding="8,5" Content="Install update" Click="SidebarInstallUpdate_Click" />
+                        </StackPanel>
+                    </Border>
                     <Border x:Name="ModelDownloadPrompt" Background="#2A1D2A" BorderBrush="{StaticResource Pink}"
                             BorderThickness="1" CornerRadius="10" Padding="10" Margin="0,0,0,10">
                         <StackPanel>

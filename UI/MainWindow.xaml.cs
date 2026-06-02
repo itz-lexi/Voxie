@@ -503,6 +503,14 @@ public partial class MainWindow : Window
 
     private void OpenReleases_Click(object sender, RoutedEventArgs e) => OpenUrl(UpdateService.ReleasesPageUrl);
 
+    private void SidebarInstallUpdate_Click(object sender, RoutedEventArgs e)
+    {
+        if (_latestUpdate?.HasPortablePackage == true)
+            InstallUpdate_Click(sender, e);
+        else
+            OpenUrl(UpdateService.ReleasesPageUrl);
+    }
+
     private async void InstallUpdate_Click(object sender, RoutedEventArgs e)
     {
         if (_latestUpdate is null || !_latestUpdate.HasPortablePackage)
@@ -514,9 +522,12 @@ public partial class MainWindow : Window
         try
         {
             InstallUpdateButton.IsEnabled = false;
+            SidebarInstallUpdateButton.IsEnabled = false;
             UpdateStatusText.Text = $"Installing {_latestUpdate.PortablePackageName}...";
+            SidebarUpdateText.Text = $"Installing Voxie {_latestUpdate.LatestVersion}...";
             await UpdateService.PrepareAndLaunchPortableUpdateAsync(_latestUpdate);
             UpdateStatusText.Text = "Installing update. Voxie will restart when it is done.";
+            SidebarUpdateText.Text = "Installing update. Voxie will restart.";
             SetStatus("Installing update. Voxie will close and restart.");
             await Task.Delay(1000);
             Application.Current.Shutdown();
@@ -524,7 +535,9 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             InstallUpdateButton.IsEnabled = _latestUpdate.HasPortablePackage;
+            SidebarInstallUpdateButton.IsEnabled = _latestUpdate.HasPortablePackage;
             UpdateStatusText.Text = "Update failed.";
+            SidebarUpdateText.Text = "The update could not be installed. Try again from Settings.";
             SetStatus($"Could not install the update: {ex.Message}");
         }
     }
@@ -536,6 +549,16 @@ public partial class MainWindow : Window
             var result = await UpdateService.CheckForUpdatesAsync();
             _latestUpdate = result;
             InstallUpdateButton.IsEnabled = result.UpdateAvailable && result.HasPortablePackage;
+            SidebarInstallUpdateButton.IsEnabled = result.UpdateAvailable;
+            SidebarInstallUpdateButton.Content = result.HasPortablePackage
+                ? "Install update"
+                : "Open releases";
+            SidebarUpdatePrompt.Visibility = result.UpdateAvailable
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            SidebarUpdateText.Text = result.HasPortablePackage
+                ? $"Voxie {result.LatestVersion} is available."
+                : $"Voxie {result.LatestVersion} is available. Open Releases to download it.";
             UpdateStatusText.Text = result.UpdateAvailable
                 ? result.HasPortablePackage
                     ? $"Version {result.LatestVersion} is available. Install it here without keeping setup files."
@@ -548,6 +571,8 @@ public partial class MainWindow : Window
         {
             _latestUpdate = null;
             InstallUpdateButton.IsEnabled = false;
+            SidebarInstallUpdateButton.IsEnabled = false;
+            SidebarUpdatePrompt.Visibility = Visibility.Collapsed;
             UpdateStatusText.Text = "Could not check GitHub Releases. If the repo is private, update checks only work after it is public.";
             if (showWhenCurrent)
                 SetStatus($"Could not check GitHub Releases: {ex.Message}");
