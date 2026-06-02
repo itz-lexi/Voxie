@@ -538,6 +538,16 @@
                         </TextBlock>
                         <Slider x:Name="SilenceDurationSlider" Minimum="1" Maximum="12" Value="5"
                                 IsSnapToTickEnabled="False" Margin="0,6,0,5" ValueChanged="SilenceDurationSlider_ValueChanged" />
+                        <TextBlock Foreground="{StaticResource Muted}" Margin="0,8,0,0">
+                            <Run Text="Voice activation threshold: " />
+                            <Run x:Name="ActivationThresholdText" Text="0.8%" />
+                        </TextBlock>
+                        <Slider x:Name="ActivationThresholdSlider" Minimum="0.002" Maximum="0.08" Value="0.008"
+                                IsSnapToTickEnabled="False" Margin="0,6,0,5" ValueChanged="ActivationThresholdSlider_ValueChanged" />
+                        <TextBlock Text="Lower catches quieter mics. Higher ignores more background noise."
+                                   Foreground="{StaticResource Muted}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,8" />
+                        <CheckBox x:Name="NoiseSuppressionCheckBox" Content="Mute audio below the activation threshold"
+                                  Margin="0,3,0,16" />
                         <TextBlock Text="Map a VR controller button to the selected keyboard key through SteamVR or your controller software."
                                    Foreground="{StaticResource Muted}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,16" />
                         <TextBlock Text="VRCHAT CHATBOX" Foreground="{StaticResource Pink}" FontWeight="Bold" FontSize="11" />

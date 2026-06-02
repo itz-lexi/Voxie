@@ -7,11 +7,12 @@ public sealed record AudioInputDevice(int DeviceNumber, string Name);
 
 public sealed class MicrophoneCaptureService : IDisposable
 {
-    private const double SilenceThreshold = 0.008;
     private WaveInEvent? _waveIn;
     private WaveFileWriter? _writer;
     private DateTime _lastSoundAt;
     private TimeSpan _silenceDuration;
+    private double _activationThreshold;
+    private bool _enableNoiseSuppression;
     private bool _silenceReported;
 
     public bool IsRecording => _waveIn is not null;
@@ -23,13 +24,15 @@ public sealed class MicrophoneCaptureService : IDisposable
             .Select(index => new AudioInputDevice(index, WaveIn.GetCapabilities(index).ProductName))
             .ToList();
 
-    public void Start(int deviceNumber, string outputPath, TimeSpan silenceDuration)
+    public void Start(int deviceNumber, string outputPath, TimeSpan silenceDuration, double activationThreshold, bool enableNoiseSuppression)
     {
         if (IsRecording)
             throw new InvalidOperationException("Microphone capture is already running.");
 
         Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
         _silenceDuration = silenceDuration;
+        _activationThreshold = Math.Clamp(activationThreshold, 0.002, 0.08);
+        _enableNoiseSuppression = enableNoiseSuppression;
         _lastSoundAt = DateTime.UtcNow;
         _silenceReported = false;
         _waveIn = new WaveInEvent
@@ -61,13 +64,16 @@ public sealed class MicrophoneCaptureService : IDisposable
 
     private void WriteAudio(object? sender, WaveInEventArgs e)
     {
+        var level = GetPeakAmplitude(e.Buffer, e.BytesRecorded);
+        if (_enableNoiseSuppression && level < _activationThreshold)
+            MuteBuffer(e.Buffer, e.BytesRecorded);
+
         _writer?.Write(e.Buffer, 0, e.BytesRecorded);
         _writer?.Flush();
 
-        var level = GetPeakAmplitude(e.Buffer, e.BytesRecorded);
         LevelChanged?.Invoke(this, level);
 
-        if (level >= SilenceThreshold)
+        if (level >= _activationThreshold)
             _lastSoundAt = DateTime.UtcNow;
         else if (!_silenceReported && DateTime.UtcNow - _lastSoundAt >= _silenceDuration)
         {
@@ -86,5 +92,11 @@ public sealed class MicrophoneCaptureService : IDisposable
                 peak = sample;
         }
         return peak / 32768d;
+    }
+
+    private static void MuteBuffer(byte[] buffer, int length)
+    {
+        for (var index = 0; index < length; index++)
+            buffer[index] = 0;
     }
 }

@@ -87,7 +87,12 @@ public partial class MainWindow : Window
             _microphoneLevelMonitor.Stop();
             TranscriptTextBox.Clear();
             _capturePath = Path.Combine(Path.GetTempPath(), "Voxie", $"phrase-{DateTime.Now:yyyyMMdd-HHmmssfff}.wav");
-            _microphoneCapture.Start(device.DeviceNumber, _capturePath, TimeSpan.FromSeconds(_settings.SilenceDurationSeconds));
+            _microphoneCapture.Start(
+                device.DeviceNumber,
+                _capturePath,
+                TimeSpan.FromSeconds(_settings.SilenceDurationSeconds),
+                _settings.ActivationThreshold,
+                _settings.EnableNoiseSuppression);
             _isRecording = true;
             CaptureStatusText.Text = "Listening...";
             CaptureHintText.Text = $"Phrase completes after {_settings.SilenceDurationSeconds:0.0} seconds of silence.";
@@ -399,6 +404,8 @@ public partial class MainWindow : Window
         _settings.Model = SelectedText(ModelComboBox);
         _settings.AutoCopyTranscript = AutoCopyCheckBox.IsChecked == true;
         _settings.SilenceDurationSeconds = SilenceDurationSlider.Value;
+        _settings.ActivationThreshold = ActivationThresholdSlider.Value;
+        _settings.EnableNoiseSuppression = NoiseSuppressionCheckBox.IsChecked == true;
         _settings.DisableVrChatOsc = DisableVrChatOscCheckBox.IsChecked == true;
         AppSettingsService.Save(_settings);
         SetStatus("Preferences saved.");
@@ -497,6 +504,12 @@ public partial class MainWindow : Window
     {
         if (SilenceDurationText is not null)
             SilenceDurationText.Text = $"{e.NewValue:0.0} seconds";
+    }
+
+    private void ActivationThresholdSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (ActivationThresholdText is not null)
+            ActivationThresholdText.Text = $"{e.NewValue * 100:0.0}%";
     }
 
     private void AudioSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
@@ -681,6 +694,8 @@ public partial class MainWindow : Window
         SelectByText(ModelComboBox, _settings.Model);
         ActivationKeyText.Text = _settings.ActivationKey;
         SilenceDurationSlider.Value = Math.Clamp(_settings.SilenceDurationSeconds, 1, 12);
+        ActivationThresholdSlider.Value = Math.Clamp(_settings.ActivationThreshold, 0.002, 0.08);
+        NoiseSuppressionCheckBox.IsChecked = _settings.EnableNoiseSuppression;
         DisableVrChatOscCheckBox.IsChecked = _settings.DisableVrChatOsc;
         CaptureHintText.Text = $"Press {_settings.ActivationKey} to record a phrase.";
         AutoCopyCheckBox.IsChecked = _settings.AutoCopyTranscript;
