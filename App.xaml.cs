@@ -15,6 +15,7 @@ public partial class App : Application
             return;
         }
 
+        _ = UpdateService.CleanupUpdateStagingAsync();
         MainWindow = new MainWindow();
         MainWindow.Show();
     }

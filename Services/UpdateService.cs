@@ -80,6 +80,7 @@ public static class UpdateService
         var updateRoot = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Voxie", "UpdateStaging", DateTime.Now.ToString("yyyyMMdd-HHmmss"));
+        PruneOldUpdateStaging();
         var extractionPath = Path.Combine(updateRoot, "extracted");
         Directory.CreateDirectory(extractionPath);
 
@@ -116,6 +117,12 @@ public static class UpdateService
 
     public static bool IsPortableUpdateCommand(IReadOnlyList<string> args) =>
         args.Any(arg => string.Equals(arg, ApplyPortableUpdateArgument, StringComparison.OrdinalIgnoreCase));
+
+    public static async Task CleanupUpdateStagingAsync()
+    {
+        await Task.Delay(3000);
+        PruneOldUpdateStaging();
+    }
 
     public static async Task<int> ApplyPortableUpdateFromCommandLineAsync(IReadOnlyList<string> args)
     {
@@ -172,6 +179,27 @@ public static class UpdateService
         catch
         {
             return false;
+        }
+    }
+
+    private static void PruneOldUpdateStaging()
+    {
+        var stagingRoot = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Voxie", "UpdateStaging");
+        if (!Directory.Exists(stagingRoot))
+            return;
+
+        foreach (var directory in Directory.EnumerateDirectories(stagingRoot))
+        {
+            try
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+            catch
+            {
+                // An updater may still be running from this folder. A later startup retries cleanup.
+            }
         }
     }
 
