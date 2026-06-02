@@ -43,6 +43,7 @@ public partial class MainWindow : Window
         _settings = AppSettingsService.Load();
         _hotkey.Pressed += (_, _) => BeginPhraseCapture();
         _microphoneCapture.SilenceDetected += (_, _) => Dispatcher.InvokeAsync(CompletePhraseCaptureAsync);
+        _microphoneCapture.LevelChanged += (_, level) => Dispatcher.InvokeAsync(() => UpdateCaptureLevel(level));
         _microphoneLevelMonitor.LevelChanged += (_, level) => Dispatcher.InvokeAsync(() => UpdateMicrophoneLevel(level));
         _galleryLayoutTimer.Tick += (_, _) =>
         {
@@ -90,6 +91,7 @@ public partial class MainWindow : Window
             _isRecording = true;
             CaptureStatusText.Text = "Listening...";
             CaptureHintText.Text = $"Phrase completes after {_settings.SilenceDurationSeconds:0.0} seconds of silence.";
+            CaptureLevelText.Text = "Listening for microphone input...";
             SetStatus($"Recording phrase from {device.Name}.");
         }
         catch (Exception ex)
@@ -549,6 +551,17 @@ public partial class MainWindow : Window
             MicrophoneLevelHint.Text = "Microphone input detected.";
     }
 
+    private void UpdateCaptureLevel(double level)
+    {
+        var displayedLevel = Math.Clamp(Math.Sqrt(level) * 100, 0, 100);
+        CaptureLevelMeter.Value = displayedLevel;
+        CaptureLevelText.Text = displayedLevel > 5
+            ? "Microphone input detected."
+            : _isRecording
+                ? "No voice level yet. Check the selected microphone if this stays flat."
+                : "Mic input appears here while recording.";
+    }
+
     private async void DownloadModel_Click(object sender, RoutedEventArgs e)
     {
         DownloadModelButton.IsEnabled = false;
@@ -711,9 +724,13 @@ public partial class MainWindow : Window
         try
         {
             var transcript = await _transcriptionService.TranscribeFileAsync(filePath);
-            TranscriptTextBox.Text = transcript.Length == 0 ? "[No speech detected]" : transcript;
+            var hasSpeech = !string.IsNullOrWhiteSpace(transcript)
+                && !string.Equals(transcript, "[BLANK_AUDIO]", StringComparison.OrdinalIgnoreCase);
+            TranscriptTextBox.Text = hasSpeech ? transcript : "[No speech detected]";
             CaptureStatusText.Text = "Standing by";
-            SetStatus("Local transcription complete.");
+            SetStatus(hasSpeech
+                ? "Local transcription complete."
+                : "No speech was detected. Check the selected microphone and input meter.");
         }
         catch (Exception ex)
         {

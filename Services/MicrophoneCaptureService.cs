@@ -7,7 +7,7 @@ public sealed record AudioInputDevice(int DeviceNumber, string Name);
 
 public sealed class MicrophoneCaptureService : IDisposable
 {
-    private const double SilenceThreshold = 0.015;
+    private const double SilenceThreshold = 0.008;
     private WaveInEvent? _waveIn;
     private WaveFileWriter? _writer;
     private DateTime _lastSoundAt;
@@ -16,6 +16,7 @@ public sealed class MicrophoneCaptureService : IDisposable
 
     public bool IsRecording => _waveIn is not null;
     public event EventHandler? SilenceDetected;
+    public event EventHandler<double>? LevelChanged;
 
     public static IReadOnlyList<AudioInputDevice> GetDevices() =>
         Enumerable.Range(0, WaveIn.DeviceCount)
@@ -53,6 +54,7 @@ public sealed class MicrophoneCaptureService : IDisposable
         _writer?.Dispose();
         _waveIn = null;
         _writer = null;
+        LevelChanged?.Invoke(this, 0);
     }
 
     public void Dispose() => Stop();
@@ -62,7 +64,10 @@ public sealed class MicrophoneCaptureService : IDisposable
         _writer?.Write(e.Buffer, 0, e.BytesRecorded);
         _writer?.Flush();
 
-        if (GetPeakAmplitude(e.Buffer, e.BytesRecorded) >= SilenceThreshold)
+        var level = GetPeakAmplitude(e.Buffer, e.BytesRecorded);
+        LevelChanged?.Invoke(this, level);
+
+        if (level >= SilenceThreshold)
             _lastSoundAt = DateTime.UtcNow;
         else if (!_silenceReported && DateTime.UtcNow - _lastSoundAt >= _silenceDuration)
         {

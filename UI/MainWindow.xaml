@@ -448,6 +448,10 @@
                             <TextBlock Text="LIVE CAPTURE" Foreground="{StaticResource Pink}" FontWeight="Bold" FontSize="11" />
                             <TextBlock x:Name="CaptureStatusText" Text="Shortcut ready" Foreground="#FFFFFF" FontSize="19" FontWeight="SemiBold" Margin="0,4,0,0" />
                             <TextBlock x:Name="CaptureHintText" Text="Press F8 to record a phrase." Foreground="{StaticResource Muted}" Margin="0,3,0,0" />
+                            <ProgressBar x:Name="CaptureLevelMeter" Minimum="0" Maximum="100" Width="220"
+                                         HorizontalAlignment="Left" Margin="0,10,0,4" />
+                            <TextBlock x:Name="CaptureLevelText" Text="Mic input appears here while recording."
+                                       Foreground="{StaticResource Muted}" FontSize="11" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                             <Button x:Name="StartRecordingButton" Style="{StaticResource PrimaryButton}" Content="Start recording" Click="StartRecording_Click" />
