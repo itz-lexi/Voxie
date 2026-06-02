@@ -19,6 +19,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _galleryLayoutTimer = new() { Interval = TimeSpan.FromMilliseconds(140) };
     private readonly AppSettings _settings;
     private readonly MicrophoneCaptureService _microphoneCapture = new();
+    private readonly MicrophoneLevelMonitorService _microphoneLevelMonitor = new();
     private readonly GlobalHotkeyService _hotkey = new();
     private readonly VrChatOscChatboxService _vrChatOsc = new();
     private readonly WhisperTranscriptionService _transcriptionService = new();
@@ -41,6 +42,7 @@ public partial class MainWindow : Window
         _settings = AppSettingsService.Load();
         _hotkey.Pressed += (_, _) => BeginPhraseCapture();
         _microphoneCapture.SilenceDetected += (_, _) => Dispatcher.InvokeAsync(CompletePhraseCaptureAsync);
+        _microphoneLevelMonitor.LevelChanged += (_, level) => Dispatcher.InvokeAsync(() => UpdateMicrophoneLevel(level));
         _galleryLayoutTimer.Tick += (_, _) =>
         {
             _galleryLayoutTimer.Stop();
@@ -50,6 +52,7 @@ public partial class MainWindow : Window
         {
             _hotkey.Dispose();
             _microphoneCapture.Dispose();
+            _microphoneLevelMonitor.Dispose();
             _vrChatOsc.Dispose();
             Application.Current.Shutdown();
         };
@@ -75,6 +78,7 @@ public partial class MainWindow : Window
 
         try
         {
+            _microphoneLevelMonitor.Stop();
             TranscriptTextBox.Clear();
             _capturePath = Path.Combine(Path.GetTempPath(), "Voxie", $"phrase-{DateTime.Now:yyyyMMdd-HHmmssfff}.wav");
             _microphoneCapture.Start(device.DeviceNumber, _capturePath, TimeSpan.FromSeconds(_settings.SilenceDurationSeconds));
@@ -100,6 +104,7 @@ public partial class MainWindow : Window
         CaptureHintText.Text = "Running local Whisper.";
         SetStatus("Silence detected. Transcribing completed phrase.");
         await TranscribeAsync(_capturePath);
+        StartMicrophoneLevelPreview();
         CaptureHintText.Text = $"Press {_settings.ActivationKey} to record another phrase.";
         if (!_settings.DisableVrChatOsc && TranscriptTextBox.Text != "[No speech detected]")
             await SendTranscriptToChatboxAsync("Sent completed phrase");
@@ -476,6 +481,35 @@ public partial class MainWindow : Window
             SilenceDurationText.Text = $"{e.NewValue:0.0} seconds";
     }
 
+    private void AudioSourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        StartMicrophoneLevelPreview();
+
+    private void StartMicrophoneLevelPreview()
+    {
+        _microphoneLevelMonitor.Stop();
+        if (_isRecording || SettingsPage.Visibility != Visibility.Visible
+            || AudioSourceComboBox.SelectedItem is not AudioInputDevice device)
+            return;
+
+        try
+        {
+            _microphoneLevelMonitor.Start(device.DeviceNumber);
+            MicrophoneLevelHint.Text = "Speak normally to check the selected microphone.";
+        }
+        catch (Exception ex)
+        {
+            MicrophoneLevelHint.Text = $"Could not preview this microphone: {ex.Message}";
+        }
+    }
+
+    private void UpdateMicrophoneLevel(double level)
+    {
+        var displayedLevel = Math.Clamp(Math.Sqrt(level) * 100, 0, 100);
+        MicrophoneLevelMeter.Value = displayedLevel;
+        if (displayedLevel > 4)
+            MicrophoneLevelHint.Text = "Microphone input detected.";
+    }
+
     private async void DownloadModel_Click(object sender, RoutedEventArgs e)
     {
         DownloadModelButton.IsEnabled = false;
@@ -602,16 +636,26 @@ public partial class MainWindow : Window
         DisableVrChatOscCheckBox.IsChecked = _settings.DisableVrChatOsc;
         CaptureHintText.Text = $"Press {_settings.ActivationKey} to record a phrase.";
         AutoCopyCheckBox.IsChecked = _settings.AutoCopyTranscript;
+        InstalledVersionText.Text = $"Voxie {UpdateService.CurrentVersion}";
     }
 
-    private void ShowTranscript_Click(object sender, RoutedEventArgs e) => ShowPage(TranscriptPage, "Transcript workspace", "Capture live phrases with a button or global shortcut.");
+    private void ShowTranscript_Click(object sender, RoutedEventArgs e)
+    {
+        ShowPage(TranscriptPage, "Transcript workspace", "Capture live phrases with a button or global shortcut.");
+        _microphoneLevelMonitor.Stop();
+    }
     private async void ShowGallery_Click(object sender, RoutedEventArgs e)
     {
         ShowPage(GalleryPage, "Commissioned art", "Keep your emotes, banners, and favorite pieces close.");
+        _microphoneLevelMonitor.Stop();
         if (!_galleryLoaded)
             await RefreshGalleryAsync();
     }
-    private void ShowSettings_Click(object sender, RoutedEventArgs e) => ShowPage(SettingsPage, "Settings", "Choose how your transcription workspace behaves.");
+    private void ShowSettings_Click(object sender, RoutedEventArgs e)
+    {
+        ShowPage(SettingsPage, "Settings", "Choose how your transcription workspace behaves.");
+        StartMicrophoneLevelPreview();
+    }
 
     private void ShowPage(UIElement page, string title, string subtitle)
     {

@@ -238,6 +238,26 @@
         <Style TargetType="CheckBox">
             <Setter Property="Foreground" Value="#EEF2F0" />
         </Style>
+        <Style TargetType="ProgressBar">
+            <Setter Property="Height" Value="10" />
+            <Setter Property="Background" Value="#24282B" />
+            <Setter Property="Foreground" Value="{StaticResource Primary}" />
+            <Setter Property="BorderBrush" Value="#3A3F43" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
+                            <Grid x:Name="PART_Track" ClipToBounds="True">
+                                <Border x:Name="PART_Indicator" Background="{TemplateBinding Foreground}"
+                                        HorizontalAlignment="Left" CornerRadius="4" />
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="NavButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
             <Setter Property="HorizontalContentAlignment" Value="Left" />
             <Setter Property="Margin" Value="0,0,0,8" />
@@ -474,7 +494,12 @@
                         <TextBlock Text="TRANSCRIPTION SETTINGS" Foreground="{StaticResource Pink}" FontWeight="Bold" FontSize="11" />
                         <TextBlock Text="Local Whisper preferences" Foreground="#FFFFFF" FontSize="18" FontWeight="SemiBold" Margin="0,5,0,16" />
                         <TextBlock Text="Audio source" Foreground="{StaticResource Muted}" />
-                        <ComboBox x:Name="AudioSourceComboBox" Margin="0,5,0,12" DisplayMemberPath="Name" />
+                        <ComboBox x:Name="AudioSourceComboBox" Margin="0,5,0,7" DisplayMemberPath="Name"
+                                  SelectionChanged="AudioSourceComboBox_SelectionChanged" />
+                        <TextBlock Text="Microphone level" Foreground="{StaticResource Muted}" FontSize="11" />
+                        <ProgressBar x:Name="MicrophoneLevelMeter" Minimum="0" Maximum="100" Margin="0,5,0,4" />
+                        <TextBlock x:Name="MicrophoneLevelHint" Text="Open Settings to preview the selected microphone."
+                                   Foreground="{StaticResource Muted}" FontSize="11" Margin="0,0,0,12" />
                         <TextBlock Text="Language" Foreground="{StaticResource Muted}" />
                         <ComboBox x:Name="LanguageComboBox" Margin="0,5,0,12">
                             <ComboBoxItem Content="English" />
@@ -545,6 +570,7 @@
                 </Border.Style>
                 <StackPanel>
                     <TextBlock Text="Made by Lexi" Foreground="#F4F4F4" FontWeight="SemiBold" FontSize="14" />
+                    <TextBlock x:Name="InstalledVersionText" Text="Voxie" Foreground="#7F8A90" FontSize="10" Margin="0,2,0,0" />
                     <TextBlock Foreground="#AEB4B8" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0">
                         <Run Text="Found a bug or have feedback? Join " />
                         <Hyperlink NavigateUri="https://discord.gg/N8JXJqtSbh" RequestNavigate="DiscordLink_RequestNavigate">

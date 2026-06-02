@@ -53,6 +53,8 @@ jobs:
             /p:PublishSingleFile=true `
             /p:IncludeNativeLibrariesForSelfExtract=true `
             /p:EnableCompressionInSingleFile=true `
+            /p:DebugType=None `
+            /p:DebugSymbols=false `
             /p:Version=${{ steps.version.outputs.version }} `
             /p:InformationalVersion=${{ steps.version.outputs.tag }}
 
@@ -71,6 +73,8 @@ jobs:
             --self-contained false `
             -o .\publish\win-x64-runtime-dependent `
             /p:PublishSingleFile=true `
+            /p:DebugType=None `
+            /p:DebugSymbols=false `
             /p:Version=${{ steps.version.outputs.version }} `
             /p:InformationalVersion=${{ steps.version.outputs.tag }}
           Compress-Archive -Path ".\publish\win-x64-runtime-dependent\*" -DestinationPath ".\artifacts\Voxie-${{ steps.version.outputs.tag }}-win-x64-runtime-dependent-portable.zip" -Force
