@@ -452,9 +452,48 @@
                                          HorizontalAlignment="Left" Margin="0,10,0,4" />
                             <TextBlock x:Name="CaptureLevelText" Text="Mic input appears here while recording."
                                        Foreground="{StaticResource Muted}" FontSize="11" />
+                            <Expander Header="Voice settings" Foreground="#EEF2F0" Margin="0,12,0,0">
+                                <StackPanel Margin="0,10,0,0">
+                                    <TextBlock Text="Audio source" Foreground="{StaticResource Muted}" />
+                                    <Grid Margin="0,5,0,7">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ComboBox x:Name="AudioSourceComboBox" DisplayMemberPath="Name"
+                                                  SelectionChanged="AudioSourceComboBox_SelectionChanged" />
+                                        <Button Grid.Column="1" Content="Refresh devices" Click="RefreshAudioDevices_Click"
+                                                Margin="8,0,0,0" />
+                                    </Grid>
+                                    <TextBlock Text="Microphone level" Foreground="{StaticResource Muted}" FontSize="11" />
+                                    <ProgressBar x:Name="MicrophoneLevelMeter" Minimum="0" Maximum="100" Margin="0,5,0,4" />
+                                    <TextBlock x:Name="MicrophoneLevelHint" Text="Open voice settings to preview the selected microphone."
+                                               Foreground="{StaticResource Muted}" FontSize="11" Margin="0,0,0,12" />
+                                    <TextBlock Foreground="{StaticResource Muted}">
+                                        <Run Text="Silence before phrase completes: " />
+                                        <Run x:Name="SilenceDurationText" Text="5.0 seconds" />
+                                    </TextBlock>
+                                    <Slider x:Name="SilenceDurationSlider" Minimum="1" Maximum="12" Value="5"
+                                            IsSnapToTickEnabled="False" Margin="0,6,0,5" ValueChanged="SilenceDurationSlider_ValueChanged" />
+                                    <TextBlock Foreground="{StaticResource Muted}" Margin="0,8,0,0">
+                                        <Run Text="Voice activation threshold: " />
+                                        <Run x:Name="ActivationThresholdText" Text="0.4%" />
+                                    </TextBlock>
+                                    <Slider x:Name="ActivationThresholdSlider" Minimum="0.001" Maximum="0.04" Value="0.004"
+                                            IsSnapToTickEnabled="False" Margin="0,6,0,5" ValueChanged="ActivationThresholdSlider_ValueChanged" />
+                                    <TextBlock Text="Lower catches quieter mics. Higher ignores more background noise."
+                                               Foreground="{StaticResource Muted}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,8" />
+                                    <CheckBox x:Name="NoiseSuppressionCheckBox" Content="Mute audio below the activation threshold"
+                                              Margin="0,3,0,12" />
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Save voice settings"
+                                            HorizontalAlignment="Left" Click="SaveSettings_Click" />
+                                </StackPanel>
+                            </Expander>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                             <Button x:Name="StartRecordingButton" Style="{StaticResource PrimaryButton}" Content="Start recording" Click="StartRecording_Click" />
+                            <Button x:Name="StopAndTranscribeButton" Content="Stop and transcribe" Click="StopAndTranscribe_Click"
+                                    IsEnabled="False" />
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -497,21 +536,6 @@
                     <StackPanel>
                         <TextBlock Text="TRANSCRIPTION SETTINGS" Foreground="{StaticResource Pink}" FontWeight="Bold" FontSize="11" />
                         <TextBlock Text="Local Whisper preferences" Foreground="#FFFFFF" FontSize="18" FontWeight="SemiBold" Margin="0,5,0,16" />
-                        <TextBlock Text="Audio source" Foreground="{StaticResource Muted}" />
-                        <Grid Margin="0,5,0,7">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <ComboBox x:Name="AudioSourceComboBox" DisplayMemberPath="Name"
-                                      SelectionChanged="AudioSourceComboBox_SelectionChanged" />
-                            <Button Grid.Column="1" Content="Refresh devices" Click="RefreshAudioDevices_Click"
-                                    Margin="8,0,0,0" />
-                        </Grid>
-                        <TextBlock Text="Microphone level" Foreground="{StaticResource Muted}" FontSize="11" />
-                        <ProgressBar x:Name="MicrophoneLevelMeter" Minimum="0" Maximum="100" Margin="0,5,0,4" />
-                        <TextBlock x:Name="MicrophoneLevelHint" Text="Open Settings to preview the selected microphone."
-                                   Foreground="{StaticResource Muted}" FontSize="11" Margin="0,0,0,12" />
                         <TextBlock Text="Language" Foreground="{StaticResource Muted}" />
                         <ComboBox x:Name="LanguageComboBox" Margin="0,5,0,12">
                             <ComboBoxItem Content="English" />
@@ -532,22 +556,6 @@
                             <Button x:Name="CancelKeybindButton" Content="Cancel" Click="CancelKeybind_Click"
                                     Visibility="Collapsed" />
                         </StackPanel>
-                        <TextBlock Foreground="{StaticResource Muted}">
-                            <Run Text="Silence before phrase completes: " />
-                            <Run x:Name="SilenceDurationText" Text="5.0 seconds" />
-                        </TextBlock>
-                        <Slider x:Name="SilenceDurationSlider" Minimum="1" Maximum="12" Value="5"
-                                IsSnapToTickEnabled="False" Margin="0,6,0,5" ValueChanged="SilenceDurationSlider_ValueChanged" />
-                        <TextBlock Foreground="{StaticResource Muted}" Margin="0,8,0,0">
-                            <Run Text="Voice activation threshold: " />
-                            <Run x:Name="ActivationThresholdText" Text="0.8%" />
-                        </TextBlock>
-                        <Slider x:Name="ActivationThresholdSlider" Minimum="0.002" Maximum="0.08" Value="0.008"
-                                IsSnapToTickEnabled="False" Margin="0,6,0,5" ValueChanged="ActivationThresholdSlider_ValueChanged" />
-                        <TextBlock Text="Lower catches quieter mics. Higher ignores more background noise."
-                                   Foreground="{StaticResource Muted}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,8" />
-                        <CheckBox x:Name="NoiseSuppressionCheckBox" Content="Mute audio below the activation threshold"
-                                  Margin="0,3,0,16" />
                         <TextBlock Text="Map a VR controller button to the selected keyboard key through SteamVR or your controller software."
                                    Foreground="{StaticResource Muted}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,16" />
                         <TextBlock Text="VRCHAT CHATBOX" Foreground="{StaticResource Pink}" FontWeight="Bold" FontSize="11" />

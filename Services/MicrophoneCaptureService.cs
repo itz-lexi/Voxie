@@ -31,7 +31,7 @@ public sealed class MicrophoneCaptureService : IDisposable
 
         Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
         _silenceDuration = silenceDuration;
-        _activationThreshold = Math.Clamp(activationThreshold, 0.002, 0.08);
+        _activationThreshold = Math.Clamp(activationThreshold, 0.001, 0.04);
         _enableNoiseSuppression = enableNoiseSuppression;
         _lastSoundAt = DateTime.UtcNow;
         _silenceReported = false;
@@ -64,16 +64,17 @@ public sealed class MicrophoneCaptureService : IDisposable
 
     private void WriteAudio(object? sender, WaveInEventArgs e)
     {
-        var level = GetPeakAmplitude(e.Buffer, e.BytesRecorded);
-        if (_enableNoiseSuppression && level < _activationThreshold)
+        var peakLevel = GetPeakAmplitude(e.Buffer, e.BytesRecorded);
+        var voiceLevel = GetRmsAmplitude(e.Buffer, e.BytesRecorded);
+        if (_enableNoiseSuppression && voiceLevel < _activationThreshold)
             MuteBuffer(e.Buffer, e.BytesRecorded);
 
         _writer?.Write(e.Buffer, 0, e.BytesRecorded);
         _writer?.Flush();
 
-        LevelChanged?.Invoke(this, level);
+        LevelChanged?.Invoke(this, peakLevel);
 
-        if (level >= _activationThreshold)
+        if (voiceLevel >= _activationThreshold)
             _lastSoundAt = DateTime.UtcNow;
         else if (!_silenceReported && DateTime.UtcNow - _lastSoundAt >= _silenceDuration)
         {
@@ -92,6 +93,20 @@ public sealed class MicrophoneCaptureService : IDisposable
                 peak = sample;
         }
         return peak / 32768d;
+    }
+
+    private static double GetRmsAmplitude(byte[] buffer, int length)
+    {
+        var sum = 0d;
+        var count = 0;
+        for (var index = 0; index + 1 < length; index += 2)
+        {
+            var sample = BitConverter.ToInt16(buffer, index) / 32768d;
+            sum += sample * sample;
+            count++;
+        }
+
+        return count > 0 ? Math.Sqrt(sum / count) : 0;
     }
 
     private static void MuteBuffer(byte[] buffer, int length)

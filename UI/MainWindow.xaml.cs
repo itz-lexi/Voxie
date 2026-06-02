@@ -94,6 +94,8 @@ public partial class MainWindow : Window
                 _settings.ActivationThreshold,
                 _settings.EnableNoiseSuppression);
             _isRecording = true;
+            StartRecordingButton.IsEnabled = false;
+            StopAndTranscribeButton.IsEnabled = true;
             CaptureStatusText.Text = "Listening...";
             CaptureHintText.Text = $"Phrase completes after {_settings.SilenceDurationSeconds:0.0} seconds of silence.";
             CaptureLevelText.Text = "Listening for microphone input...";
@@ -101,6 +103,8 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            StartRecordingButton.IsEnabled = true;
+            StopAndTranscribeButton.IsEnabled = false;
             SetStatus($"Could not start phrase capture: {ex.Message}");
         }
     }
@@ -111,6 +115,7 @@ public partial class MainWindow : Window
             return;
 
         _isRecording = false;
+        StopAndTranscribeButton.IsEnabled = false;
         _microphoneCapture.Stop();
         CaptureStatusText.Text = "Transcribing...";
         CaptureHintText.Text = "Running local Whisper.";
@@ -125,6 +130,11 @@ public partial class MainWindow : Window
     }
 
     private void StartRecording_Click(object sender, RoutedEventArgs e) => BeginPhraseCapture();
+
+    private void StopAndTranscribe_Click(object sender, RoutedEventArgs e)
+    {
+        _ = CompletePhraseCaptureAsync();
+    }
 
     private void CopyTranscript_Click(object sender, RoutedEventArgs e) => CopyTranscript();
 
@@ -541,7 +551,7 @@ public partial class MainWindow : Window
     private void StartMicrophoneLevelPreview()
     {
         _microphoneLevelMonitor.Stop();
-        if (_isRecording || SettingsPage.Visibility != Visibility.Visible
+        if (_isRecording || TranscriptPage.Visibility != Visibility.Visible
             || AudioSourceComboBox.SelectedItem is not AudioInputDevice device)
             return;
 
@@ -694,7 +704,7 @@ public partial class MainWindow : Window
         SelectByText(ModelComboBox, _settings.Model);
         ActivationKeyText.Text = _settings.ActivationKey;
         SilenceDurationSlider.Value = Math.Clamp(_settings.SilenceDurationSeconds, 1, 12);
-        ActivationThresholdSlider.Value = Math.Clamp(_settings.ActivationThreshold, 0.002, 0.08);
+        ActivationThresholdSlider.Value = Math.Clamp(_settings.ActivationThreshold, 0.001, 0.04);
         NoiseSuppressionCheckBox.IsChecked = _settings.EnableNoiseSuppression;
         DisableVrChatOscCheckBox.IsChecked = _settings.DisableVrChatOsc;
         CaptureHintText.Text = $"Press {_settings.ActivationKey} to record a phrase.";
@@ -705,7 +715,7 @@ public partial class MainWindow : Window
     private void ShowTranscript_Click(object sender, RoutedEventArgs e)
     {
         ShowPage(TranscriptPage, "Transcript workspace", "Capture live phrases with a button or global shortcut.");
-        _microphoneLevelMonitor.Stop();
+        StartMicrophoneLevelPreview();
     }
     private async void ShowGallery_Click(object sender, RoutedEventArgs e)
     {
@@ -717,7 +727,7 @@ public partial class MainWindow : Window
     private void ShowSettings_Click(object sender, RoutedEventArgs e)
     {
         ShowPage(SettingsPage, "Settings", "Choose how your transcription workspace behaves.");
-        StartMicrophoneLevelPreview();
+        _microphoneLevelMonitor.Stop();
     }
 
     private void ShowPage(UIElement page, string title, string subtitle)
@@ -756,6 +766,7 @@ public partial class MainWindow : Window
         {
             _isTranscribing = false;
             StartRecordingButton.IsEnabled = true;
+            StopAndTranscribeButton.IsEnabled = false;
         }
     }
 
