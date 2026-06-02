@@ -1,7 +1,7 @@
 #define MyAppName "Voxie"
 #define MyAppExeName "Voxie.exe"
 #ifndef AppVersion
-#define AppVersion "1.0.5"
+#define AppVersion "1.0.6"
 #endif
 
 [Setup]

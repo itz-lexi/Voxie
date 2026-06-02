@@ -407,9 +407,18 @@ public partial class MainWindow : Window
         _isCapturingKeybind = true;
         _hotkey.Unregister();
         ChangeKeybindButton.Content = "Press a key...";
+        ChangeKeybindButton.IsEnabled = false;
+        CancelKeybindButton.Visibility = Visibility.Visible;
         CaptureStatusText.Text = "Choosing shortcut";
         SetStatus("Press any non-modifier keyboard key. Press Escape to cancel.");
         Focus();
+    }
+
+    private void CancelKeybind_Click(object sender, RoutedEventArgs e)
+    {
+        FinishKeybindCapture();
+        RegisterPhraseHotkey();
+        SetStatus("Keybind change cancelled.");
     }
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -455,6 +464,8 @@ public partial class MainWindow : Window
     {
         _isCapturingKeybind = false;
         ChangeKeybindButton.Content = "Change keybind";
+        ChangeKeybindButton.IsEnabled = true;
+        CancelKeybindButton.Visibility = Visibility.Collapsed;
     }
 
     private bool RegisterPhraseHotkey()

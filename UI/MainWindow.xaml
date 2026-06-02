@@ -525,6 +525,8 @@
                                 <TextBlock x:Name="ActivationKeyText" Text="F8" Foreground="#EEF2F0" FontWeight="SemiBold" />
                             </Border>
                             <Button x:Name="ChangeKeybindButton" Content="Change keybind" Click="ChangeKeybind_Click" />
+                            <Button x:Name="CancelKeybindButton" Content="Cancel" Click="CancelKeybind_Click"
+                                    Visibility="Collapsed" />
                         </StackPanel>
                         <TextBlock Foreground="{StaticResource Muted}">
                             <Run Text="Silence before phrase completes: " />
