@@ -52,6 +52,7 @@ jobs:
             -o .\publish\win-x64 `
             /p:PublishSingleFile=true `
             /p:IncludeNativeLibrariesForSelfExtract=true `
+            /p:EnableCompressionInSingleFile=true `
             /p:Version=${{ steps.version.outputs.version }} `
             /p:InformationalVersion=${{ steps.version.outputs.tag }}
 
@@ -60,6 +61,19 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path .\artifacts | Out-Null
           Compress-Archive -Path ".\publish\win-x64\*" -DestinationPath ".\artifacts\Voxie-${{ steps.version.outputs.tag }}-win-x64-portable.zip" -Force
+
+      - name: Publish lightweight portable app
+        shell: pwsh
+        run: |
+          dotnet publish .\Voxie.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained false `
+            -o .\publish\win-x64-runtime-dependent `
+            /p:PublishSingleFile=true `
+            /p:Version=${{ steps.version.outputs.version }} `
+            /p:InformationalVersion=${{ steps.version.outputs.tag }}
+          Compress-Archive -Path ".\publish\win-x64-runtime-dependent\*" -DestinationPath ".\artifacts\Voxie-${{ steps.version.outputs.tag }}-win-x64-runtime-dependent-portable.zip" -Force
 
       - name: Install Inno Setup
         shell: pwsh
@@ -92,6 +106,7 @@ jobs:
 
           - `Voxie-${{ steps.version.outputs.tag }}-win-x64-setup.exe`
           - `Voxie-${{ steps.version.outputs.tag }}-win-x64-portable.zip`
+          - `Voxie-${{ steps.version.outputs.tag }}-win-x64-runtime-dependent-portable.zip` if you already have the .NET 8 Desktop Runtime
 
           Enable OSC in VRChat, then download the local Whisper model from inside Voxie.
           "@ | Set-Content .\release-notes.md

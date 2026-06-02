@@ -154,29 +154,42 @@ public partial class MainWindow : Window
         }
     }
 
-    private void RefreshGallery()
+    private async Task RefreshGalleryAsync()
     {
-        var artPieces = BundledGalleryService.Load();
+        SetStatus("Loading hosted gallery previews...");
+        IReadOnlyList<ArtPiece> artPieces;
+        try
+        {
+            artPieces = await HostedGalleryService.LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            SetStatus($"Could not load the hosted gallery: {ex.Message}");
+            artPieces = [];
+        }
+
         _recentGalleryArt = artPieces
             .OrderByDescending(piece => piece.AddedAt)
             .Take(5)
-            .Select(piece => (piece, GetAspectRatio(piece.FilePath)))
+            .Select(piece => (piece, piece.AspectRatio))
             .ToList();
-        var recentPaths = _recentGalleryArt.Select(entry => entry.Piece.FilePath).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var recentUrls = _recentGalleryArt.Select(entry => entry.Piece.ImageUrl).ToHashSet(StringComparer.OrdinalIgnoreCase);
         _bannerGalleryArt = artPieces
             .Where(piece => string.Equals(piece.Category, "Banners", StringComparison.OrdinalIgnoreCase)
-                && !recentPaths.Contains(piece.FilePath))
+                && !recentUrls.Contains(piece.ImageUrl))
             .OrderBy(_ => Random.Shared.Next())
-            .Select(piece => (piece, GetAspectRatio(piece.FilePath)))
+            .Select(piece => (piece, piece.AspectRatio))
             .ToList();
         _galleryArt = artPieces
-            .Where(piece => !recentPaths.Contains(piece.FilePath)
+            .Where(piece => !recentUrls.Contains(piece.ImageUrl)
                 && !string.Equals(piece.Category, "Banners", StringComparison.OrdinalIgnoreCase))
             .OrderBy(_ => Random.Shared.Next())
-            .Select(piece => (piece, GetAspectRatio(piece.FilePath)))
+            .Select(piece => (piece, piece.AspectRatio))
             .ToList();
         _galleryLoaded = true;
         RebuildGallery();
+        if (artPieces.Count > 0)
+            SetStatus($"Loaded {artPieces.Count} hosted gallery previews.");
     }
 
     private void ScheduleGalleryRebuild()
@@ -202,7 +215,7 @@ public partial class MainWindow : Window
         {
             GalleryPanel.Children.Add(new TextBlock
             {
-                Text = "No showcase artwork has been included in this build yet.",
+                Text = "The hosted gallery is empty or could not be reached.",
                 Foreground = new SolidColorBrush(Color.FromRgb(168, 173, 178)),
                 Margin = new Thickness(2, 4, 0, 0)
             });
@@ -313,7 +326,7 @@ public partial class MainWindow : Window
         };
         try
         {
-            var bitmap = GetGalleryPreview(art.FilePath);
+            var bitmap = GetGalleryPreview(art.ImageUrl);
             image.Source = bitmap;
         }
         catch
@@ -352,34 +365,18 @@ public partial class MainWindow : Window
         };
     }
 
-    private double GetAspectRatio(string filePath)
+    private BitmapImage GetGalleryPreview(string imageUrl)
     {
-        try
-        {
-            var bitmap = GetGalleryPreview(filePath);
-            return bitmap.PixelHeight > 0 ? (double)bitmap.PixelWidth / bitmap.PixelHeight : 1;
-        }
-        catch
-        {
-            return 1;
-        }
-    }
-
-    private BitmapImage GetGalleryPreview(string filePath)
-    {
-        if (_galleryPreviewCache.TryGetValue(filePath, out var cached))
+        if (_galleryPreviewCache.TryGetValue(imageUrl, out var cached))
             return cached;
 
         var bitmap = new BitmapImage();
         bitmap.BeginInit();
-        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-        bitmap.DecodePixelHeight = string.Equals(Path.GetExtension(filePath), ".gif", StringComparison.OrdinalIgnoreCase)
-            ? 540
-            : 420;
-        bitmap.UriSource = new Uri(filePath);
+        bitmap.CacheOption = BitmapCacheOption.OnDemand;
+        bitmap.DecodePixelHeight = 540;
+        bitmap.UriSource = new Uri(imageUrl);
         bitmap.EndInit();
-        bitmap.Freeze();
-        _galleryPreviewCache[filePath] = bitmap;
+        _galleryPreviewCache[imageUrl] = bitmap;
         return bitmap;
     }
 
@@ -583,11 +580,11 @@ public partial class MainWindow : Window
     }
 
     private void ShowTranscript_Click(object sender, RoutedEventArgs e) => ShowPage(TranscriptPage, "Transcript workspace", "Capture live phrases with a button or global shortcut.");
-    private void ShowGallery_Click(object sender, RoutedEventArgs e)
+    private async void ShowGallery_Click(object sender, RoutedEventArgs e)
     {
         ShowPage(GalleryPage, "Commissioned art", "Keep your emotes, banners, and favorite pieces close.");
         if (!_galleryLoaded)
-            RefreshGallery();
+            await RefreshGalleryAsync();
     }
     private void ShowSettings_Click(object sender, RoutedEventArgs e) => ShowPage(SettingsPage, "Settings", "Choose how your transcription workspace behaves.");
 

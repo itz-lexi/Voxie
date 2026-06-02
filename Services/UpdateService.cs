@@ -44,7 +44,7 @@ public static class UpdateService
             foreach (var asset in assets.EnumerateArray())
             {
                 var assetName = asset.GetProperty("name").GetString() ?? "";
-                if (!assetName.EndsWith("-portable.zip", StringComparison.OrdinalIgnoreCase))
+                if (!assetName.EndsWith("-win-x64-portable.zip", StringComparison.OrdinalIgnoreCase))
                     continue;
 
                 portablePackageName = assetName;

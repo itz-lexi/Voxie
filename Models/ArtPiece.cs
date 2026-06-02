@@ -5,6 +5,7 @@ public sealed class ArtPiece
     public string Title { get; set; } = "";
     public string Artist { get; set; } = "";
     public string Category { get; set; } = "Artwork";
-    public string FilePath { get; set; } = "";
+    public string ImageUrl { get; set; } = "";
     public DateTime AddedAt { get; set; }
+    public double AspectRatio { get; set; } = 1;
 }

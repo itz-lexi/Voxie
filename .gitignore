@@ -4,3 +4,5 @@ obj/
 *.user
 publish/
 artifacts/
+Assets/Gallery/*
+!Assets/Gallery/.gitkeep

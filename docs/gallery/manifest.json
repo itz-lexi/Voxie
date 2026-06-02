@@ -1,0 +1,82 @@
+[
+    {
+        "title":  "Lexi banner",
+        "artist":  "rainulan30",
+        "category":  "Banners",
+        "imageUrl":  "https://raw.githubusercontent.com/itz-lexi/Voxie/master/docs/gallery/images/banners-lexi-banner-rainulan30.jpg",
+        "addedAt":  "2025-07-11T19:33:45.6453048+01:00",
+        "aspectRatio":  1.77778
+    },
+    {
+        "title":  "Lexi Comfy",
+        "artist":  "ColorCookie3",
+        "category":  "Banners",
+        "imageUrl":  "https://raw.githubusercontent.com/itz-lexi/Voxie/master/docs/gallery/images/banners-lexi-comfy-colorcookie3.jpg",
+        "addedAt":  "2026-04-22T10:27:21.2232649+01:00",
+        "aspectRatio":  1.5
+    },
+    {
+        "title":  "Yandere Byun",
+        "artist":  "Kae",
+        "category":  "Banners",
+        "imageUrl":  "https://raw.githubusercontent.com/itz-lexi/Voxie/master/docs/gallery/images/banners-yandere-byun-kae.jpg",
+        "addedAt":  "2026-04-23T00:22:32.5803570+01:00",
+        "aspectRatio":  3.08686
+    },
+    {
+        "title":  "Character Sheet",
+        "artist":  "Aconite_id",
+        "category":  "Artwork",
+        "imageUrl":  "https://raw.githubusercontent.com/itz-lexi/Voxie/master/docs/gallery/images/artwork-character-sheet-aconite-id.jpg",
+        "addedAt":  "2026-01-11T22:31:44.9656526+00:00",
+        "aspectRatio":  1.92833
+    },
+    {
+        "title":  "Blush",
+        "artist":  "Kae",
+        "category":  "Emotes",
+        "imageUrl":  "https://raw.githubusercontent.com/itz-lexi/Voxie/master/docs/gallery/images/emotes-blush-kae.jpg",
+        "addedAt":  "2026-05-28T21:13:50.5243387+01:00",
+        "aspectRatio":  1
+    },
+    {
+        "title":  "Nom",
+        "artist":  "Kae",
+        "category":  "Emotes",
+        "imageUrl":  "https://raw.githubusercontent.com/itz-lexi/Voxie/master/docs/gallery/images/emotes-nom-kae.jpg",
+        "addedAt":  "2026-05-28T21:13:53.3913254+01:00",
+        "aspectRatio":  1
+    },
+    {
+        "title":  "Sip",
+        "artist":  "Kae",
+        "category":  "Emotes",
+        "imageUrl":  "https://raw.githubusercontent.com/itz-lexi/Voxie/master/docs/gallery/images/emotes-sip-kae.jpg",
+        "addedAt":  "2026-05-28T21:13:04.0014636+01:00",
+        "aspectRatio":  1
+    },
+    {
+        "title":  "Squish",
+        "artist":  "Kae",
+        "category":  "Emotes",
+        "imageUrl":  "https://raw.githubusercontent.com/itz-lexi/Voxie/master/docs/gallery/images/emotes-squish-kae.jpg",
+        "addedAt":  "2026-05-28T21:13:54.3928324+01:00",
+        "aspectRatio":  1
+    },
+    {
+        "title":  "Wow-Yay",
+        "artist":  "Kae",
+        "category":  "Emotes",
+        "imageUrl":  "https://raw.githubusercontent.com/itz-lexi/Voxie/master/docs/gallery/images/emotes-wow-yay-kae.jpg",
+        "addedAt":  "2026-05-28T21:13:52.1755449+01:00",
+        "aspectRatio":  1
+    },
+    {
+        "title":  "PFP Itslexis",
+        "artist":  "Hwaable",
+        "category":  "Illustrations",
+        "imageUrl":  "https://raw.githubusercontent.com/itz-lexi/Voxie/master/docs/gallery/images/illustrations-pfp-itslexis-hwaable.jpg",
+        "addedAt":  "2026-02-14T15:11:23.8707723+00:00",
+        "aspectRatio":  1
+    }
+]
