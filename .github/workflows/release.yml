@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version tag, for example v1.0.0"
+        required: true
+        default: "v1.0.0"
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: Build Windows release
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_type }}" -eq "tag" ? "${{ github.ref_name }}" : "${{ inputs.version }}"
+          if (-not $tag.StartsWith("v")) {
+            throw "Version must start with v, for example v1.0.0"
+          }
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "version=$($tag.TrimStart('v'))" >> $env:GITHUB_OUTPUT
+
+      - name: Restore
+        run: dotnet restore .\Voxie.csproj
+
+      - name: Publish portable app
+        shell: pwsh
+        run: |
+          dotnet publish .\Voxie.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -o .\publish\win-x64 `
+            /p:PublishSingleFile=true `
+            /p:IncludeNativeLibrariesForSelfExtract=true `
+            /p:Version=${{ steps.version.outputs.version }} `
+            /p:InformationalVersion=${{ steps.version.outputs.tag }}
+
+      - name: Package portable app
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path .\artifacts | Out-Null
+          Compress-Archive -Path ".\publish\win-x64\*" -DestinationPath ".\artifacts\Voxie-${{ steps.version.outputs.tag }}-win-x64-portable.zip" -Force
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          & $iscc ".\installer\Voxie.iss" "/DAppVersion=${{ steps.version.outputs.version }}"
+
+      - name: Generate checksums
+        shell: pwsh
+        run: |
+          Get-FileHash -Algorithm SHA256 .\artifacts\* |
+            ForEach-Object { "$($_.Hash)  $(Split-Path $_.Path -Leaf)" } |
+            Set-Content -Path ".\artifacts\SHA256SUMS.txt"
+
+      - name: Create GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          @"
+          ## Voxie ${{ steps.version.outputs.tag }}
+
+          Local Whisper speech-to-text for VRChat OSC chatboxes.
+
+          Download either:
+
+          - `Voxie-${{ steps.version.outputs.tag }}-win-x64-setup.exe`
+          - `Voxie-${{ steps.version.outputs.tag }}-win-x64-portable.zip`
+
+          Enable OSC in VRChat, then download the local Whisper model from inside Voxie.
+          "@ | Set-Content .\release-notes.md
+          gh release create "${{ steps.version.outputs.tag }}" .\artifacts\* --title "Voxie ${{ steps.version.outputs.tag }}" --notes-file .\release-notes.md
