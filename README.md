@@ -1,37 +1,65 @@
-# Voxie
+# 🎙️ Voxie
 
-A WPF desktop workspace for speech-to-text and commissioned artwork.
+> A cozy little Windows app for turning speech into VRChat chatbox messages.
 
-## Current shell
+Voxie exists because typing in VR is fiddly, talking is easier, and sometimes you just want your words to appear without doing a tiny keyboard ritual every time. ✨
 
-- Transcript workspace with button and global-shortcut phrase recording
-- Clipboard and transcript clearing tools
-- Persistent audio, language, model, and auto-copy preferences
-- Persistent commissioned-art gallery for emotes, banners, and illustrations
-- Local Whisper provider behind `Services/ITranscriptionService.cs`
+It listens when you ask it to, turns your voice into text locally, and sends the finished phrase into the VRChat chatbox through OSC.
 
-## Local transcription
+## 🌙 The Vibe
 
-Voxie uses NAudio for Windows microphone capture and Whisper.net for local CPU transcription.
+This is a personal, friends-first tool made for comfortable VRChat sessions.
 
-Download the Whisper `ggml-base.en.bin` model and place it at:
+No giant dashboard. No account to create. No mysterious cloud service listening in. Just a cute desktop app, a microphone, and a button you can map to your VR controller.
 
-`%APPDATA%\Voxie\Models\ggml-base.en.bin`
+It is also very much vibe-coded in the AI-assisted sense: I guided the design, tested the strange corners, kept adding little ideas, and asked "can it do this too?" more times than I should probably admit. 🛠️
 
-Live recordings are captured as 16 kHz mono WAV files.
+There may still be rough edges. Please treat it like something handed to you by a friend with a smile and a "this worked on my machine" sticker.
 
-Live capture is phrase-based: press the configured global keyboard key to start a phrase while Voxie is open. Recording stops automatically after the configured silence duration and replaces the previous transcript. A VR controller button can trigger the same flow when mapped to that keyboard key through SteamVR or controller mapping software.
+## ✨ What It Does
 
-VRChat OSC chatbox integration sends UTF-8 UDP packets to `127.0.0.1:9000`. Enable OSC in VRChat; Voxie chatbox sending is on by default and can be disabled in settings. Completed phrases send automatically; the transcript workspace can also send typed text or explicitly repeat the visible phrase. Outgoing text is split into messages of at most 144 characters and spaced 15 seconds apart.
+- 🎤 Turns spoken phrases into text with local Whisper speech recognition.
+- 🥽 Sends completed phrases to the VRChat chatbox through OSC.
+- ⌨️ Starts recording from a button or a shortcut you choose.
+- 🎮 Lets you map that shortcut to a VR controller button.
+- 🤫 Stops listening automatically after a few seconds of silence.
+- 💬 Splits longer messages so they fit inside the VRChat chatbox.
+- 🔁 Lets you resend the visible phrase with `Repeat in chatbox`.
+- 🎨 Includes a small gallery for commissioned art and artist links.
 
-Preferences are stored in `%APPDATA%\Voxie\settings.json`.
+## 🐇 Getting Started
 
-## Gallery
+1. Download the latest version from the [Releases page](https://github.com/itz-lexi/Voxie/releases/latest).
+2. Open Voxie and download the local speech model when prompted.
+3. Pick your microphone in `Settings`.
+4. In VRChat, enable `Action Menu > OSC > Enabled`.
+5. Press `Start recording`, or use your chosen shortcut.
+6. Speak, pause for a moment, and let Voxie do the rest. 💬
 
-The gallery is a read-only showcase shipped with Voxie. Add creator-approved images under category folders such as `Assets\Gallery\Emotes`, `Assets\Gallery\Banners`, and `Assets\Gallery\Illustrations` before publishing a build. The first folder name becomes the displayed category. The five most recently modified files appear in a compact recently-added section above the shuffled art board. Use filenames such as `Piece name - @artist.png` to add a clickable `https://vgen.co/artist` credit link. Users cannot add personal artwork from the app.
+The first model download can take a little while. After that, transcription runs locally on your computer.
 
-GIF artwork is displayed as a static board preview to keep memory use bounded. High-resolution multi-frame GIFs can otherwise expand into gigabytes of decoded frames in WPF.
+## 🎮 VR Controller Shortcut
 
-## Updates
+Voxie lets you choose a keyboard shortcut for recording.
 
-The Settings page checks GitHub Releases for newer versions. Portable self-updates expect a release asset ending in `-portable.zip` that contains `Voxie.exe`.
+If you want to use a VR controller button, map that button to the same shortcut through SteamVR or your controller software. Then you can start a phrase without reaching for your keyboard.
+
+## 🎨 Art Corner
+
+The gallery is a little home for commissioned emotes, banners, and illustrations. Artist names link back to their VGen pages so you can find the lovely people who made them.
+
+It is there because useful apps deserve a bit of personality too.
+
+## 🐾 Tiny Disclaimer
+
+Voxie is not official VRChat software.
+
+It sends chatbox messages through VRChat's OSC feature, so you still need to enable OSC inside VRChat first. Speech recognition is never going to hear every word perfectly either, especially with noisy microphones, dramatic background music, or the kind of sentence that begins clearly and ends in delighted mumbling.
+
+Please use it kindly.
+
+## 💌 Feedback
+
+Bug reports, confused screenshots, and "hey, this button did something weird" messages are genuinely helpful.
+
+You can find me on my [Discord](https://discord.gg/N8JXJqtSbh). 💖
